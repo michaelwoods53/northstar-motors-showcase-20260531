@@ -1,6 +1,16 @@
 import { featureOptions, sortOptions, vehicles } from "./data.js";
-import * as THREE from "https://unpkg.com/three@0.165.0/build/three.module.js";
-import { OrbitControls } from "https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js";
+
+const INTERIOR_PANORAMA = "./assets/panoramas/vehicle-interior-360.png";
+const INTERIOR_PRESETS = [
+  { key: "dash", label: "Dashboard", detail: "Forward view from the front seats with the dash, steering wheel, and screens centered.", lon: 0, lat: -2 },
+  { key: "driver", label: "Driver Seat", detail: "Look left toward the steering wheel and driver controls.", lon: -42, lat: -4 },
+  { key: "passenger", label: "Passenger Side", detail: "Look right across the dash and front passenger door.", lon: 42, lat: -4 },
+  { key: "rear", label: "Rear Seats", detail: "Turn around to inspect rear seating and cabin width.", lon: 180, lat: -2 },
+  { key: "roof", label: "Roofline", detail: "Tilt upward to inspect the headliner and upper glass area.", lon: 0, lat: 58 }
+];
+
+let threeModulePromise = null;
+let disposeActiveViewer = null;
 
 const state = {
   query: "",
@@ -14,8 +24,6 @@ const state = {
   sort: "featured",
   favorites: new Set(JSON.parse(localStorage.getItem("northstar-favorites") || "[]"))
 };
-
-let disposeActiveViewer = null;
 
 const els = {
   featuredVehicleTitle: document.querySelector("#featuredVehicleTitle"),
@@ -215,19 +223,21 @@ function openVehicleModal(vehicleId) {
       <section class="modal-media">
         <div class="modal-photo-panel">
           ${renderVehiclePhoto(vehicle, "modal-photo")}
-          <div class="photo-caption">Sample listing photo included with the project.</div>
+          <div class="photo-caption">Inventory photo</div>
         </div>
         <div class="modal-viewer">
-          <div id="threeRoot"></div>
+          <div id="threeRoot" class="panorama-root">
+            <div class="viewer-loading">Loading interior 360...</div>
+          </div>
           <div class="viewer-overlay">
             <div class="viewer-toolbar">
-              <button type="button" data-tour-view="exterior" class="tour-view-button is-active">Exterior</button>
-              <button type="button" data-tour-view="cabin" class="tour-view-button">Cabin</button>
-              <button type="button" data-tour-view="reset" class="tour-view-button">Reset</button>
+              ${INTERIOR_PRESETS.map((preset, index) => `
+                <button type="button" class="tour-view-button${index === 0 ? " is-active" : ""}" data-preset="${preset.key}">${preset.label}</button>
+              `).join("")}
             </div>
             <div class="viewer-toolbar">
-              <button type="button" id="paintToggle">Change paint</button>
-              <button type="button" id="spinToggle">Auto rotate</button>
+              <button type="button" id="zoomInButton">Zoom in</button>
+              <button type="button" id="zoomOutButton">Zoom out</button>
             </div>
           </div>
         </div>
@@ -257,16 +267,9 @@ function openVehicleModal(vehicleId) {
           <p class="modal-meta">${vehicle.features.join(" • ")}</p>
         </div>
         <div class="tour-panel">
-          <strong>3D tour hotspots</strong>
-          <div id="tourHotspots" class="tour-hotspots">
-            ${vehicle.tourHotspots.map((hotspot) => `
-              <button type="button" class="tour-hotspot-button" data-tour-view="${hotspot.view}">
-                <span>${hotspot.label}</span>
-                <small>${hotspot.detail}</small>
-              </button>
-            `).join("")}
-          </div>
-          <p id="tourStatus" class="modal-meta">${vehicle.tourHotspots[0].detail}</p>
+          <strong>360 interior tour</strong>
+          <p id="tourStatus" class="modal-meta">${INTERIOR_PRESETS[0].detail}</p>
+          <p class="modal-meta">Drag to look around the cabin. Use your mouse wheel or the zoom buttons to inspect details.</p>
         </div>
         <button class="cta-primary" type="button" id="modalDriveButton">Reserve this vehicle</button>
       </section>
@@ -274,7 +277,13 @@ function openVehicleModal(vehicleId) {
   `;
 
   els.vehicleModal.showModal();
-  disposeActiveViewer = setupThreeViewer(vehicle);
+  setupPanoramaViewer().then((dispose) => {
+    if (!els.vehicleModal.open) {
+      dispose?.();
+      return;
+    }
+    disposeActiveViewer = dispose;
+  });
 
   document.querySelector("#modalDriveButton")?.addEventListener("click", () => {
     els.vehicleModal.close();
@@ -283,348 +292,176 @@ function openVehicleModal(vehicleId) {
   });
 }
 
-function setupThreeViewer(vehicle) {
+async function ensureThree() {
+  if (!threeModulePromise) {
+    threeModulePromise = import("https://unpkg.com/three@0.165.0/build/three.module.js");
+  }
+  return threeModulePromise;
+}
+
+async function setupPanoramaViewer() {
   const mount = document.querySelector("#threeRoot");
   const statusEl = document.querySelector("#tourStatus");
-  const controlsButtons = [...document.querySelectorAll("[data-tour-view]")];
+  const presetButtons = [...document.querySelectorAll("[data-preset]")];
+  const zoomInButton = document.querySelector("#zoomInButton");
+  const zoomOutButton = document.querySelector("#zoomOutButton");
+
   if (!mount || !statusEl) {
     return null;
   }
 
-  mount.innerHTML = "";
-  const width = mount.parentElement.clientWidth;
-  const height = mount.parentElement.clientHeight;
-
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xe8ecec, 8, 24);
-
-  const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-  camera.position.set(5.8, 2.7, 6.8);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(width, height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  mount.appendChild(renderer.domElement);
-
-  const orbitControls = new OrbitControls(camera, renderer.domElement);
-  orbitControls.enableDamping = true;
-  orbitControls.enablePan = false;
-  orbitControls.minDistance = 2.5;
-  orbitControls.maxDistance = 11;
-  orbitControls.target.set(0, 1.2, 0);
-
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x425257, 1.3);
-  scene.add(hemi);
-
-  const key = new THREE.DirectionalLight(0xffffff, 1.2);
-  key.position.set(4, 9, 6);
-  scene.add(key);
-
-  const rim = new THREE.DirectionalLight(0xc9e3f4, 0.45);
-  rim.position.set(-6, 4, -4);
-  scene.add(rim);
-
-  const floor = new THREE.Mesh(
-    new THREE.CircleGeometry(8, 64),
-    new THREE.MeshStandardMaterial({ color: 0xf4efe7, metalness: 0.08, roughness: 0.95 })
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -0.02;
-  scene.add(floor);
-
-  const turntable = new THREE.Mesh(
-    new THREE.CylinderGeometry(3.7, 3.7, 0.16, 56),
-    new THREE.MeshStandardMaterial({ color: 0xd9d3ca, metalness: 0.15, roughness: 0.9 })
-  );
-  turntable.position.y = 0.04;
-  scene.add(turntable);
-
-  const showroom = buildProceduralVehicle(vehicle);
-  showroom.root.position.y = 0.36;
-  scene.add(showroom.root);
-
-  const cameraGoal = new THREE.Vector3(5.8, 2.7, 6.8);
-  const targetGoal = new THREE.Vector3(0, 1.2, 0);
-  let autoRotate = false;
-  let paintIndex = 0;
-
-  const views = {
-    exterior: {
-      position: new THREE.Vector3(5.8, 2.7, 6.8),
-      target: new THREE.Vector3(0, 1.2, 0),
-      detail: "Exterior orbit mode is active. Drag to inspect the vehicle from any angle."
-    },
-    reset: {
-      position: new THREE.Vector3(5.8, 2.7, 6.8),
-      target: new THREE.Vector3(0, 1.2, 0),
-      detail: "Camera reset to the standard showroom angle."
-    },
-    cabin: {
-      position: new THREE.Vector3(1.8, 1.75, 0.1),
-      target: new THREE.Vector3(-0.5, 1.45, 0),
-      detail: "Cabin mode fades the body shell so interior seating and dash geometry are visible."
-    },
-    front: {
-      position: new THREE.Vector3(4.7, 1.8, 3.1),
-      target: new THREE.Vector3(1.9, 1.05, 0),
-      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "front")?.detail || "Front quarter inspection."
-    },
-    rear: {
-      position: new THREE.Vector3(-4.8, 1.8, 3.1),
-      target: new THREE.Vector3(-1.9, 1.08, 0),
-      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "rear")?.detail || "Rear quarter inspection."
-    },
-    roof: {
-      position: new THREE.Vector3(0.15, 5.5, 0.2),
-      target: new THREE.Vector3(0, 1.75, 0),
-      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "roof")?.detail || "Top-down inspection."
-    },
-    cargo: {
-      position: new THREE.Vector3(-4.8, 2.1, 0),
-      target: new THREE.Vector3(-2.2, 1.1, 0),
-      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "cargo")?.detail || "Rear cargo inspection."
-    },
-    wheel: {
-      position: new THREE.Vector3(2.9, 1.15, 3.3),
-      target: new THREE.Vector3(1.65, 0.62, 1.05),
-      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "wheel")?.detail || "Wheel-and-brake inspection."
-    }
-  };
-
-  function setShellOpacity(interiorMode) {
-    showroom.paintMaterial.transparent = interiorMode;
-    showroom.paintMaterial.opacity = interiorMode ? 0.22 : 1;
-    showroom.glassMaterial.opacity = interiorMode ? 0.08 : 0.78;
-    showroom.glassMaterial.transparent = true;
-    showroom.trimMaterial.opacity = interiorMode ? 0.45 : 1;
-    showroom.trimMaterial.transparent = interiorMode;
-  }
-
-  function markButtons(activeView) {
-    controlsButtons.forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.tourView === activeView);
-    });
-  }
-
-  function setView(viewKey) {
-    const view = views[viewKey] || views.exterior;
-    cameraGoal.copy(view.position);
-    targetGoal.copy(view.target);
-    setShellOpacity(viewKey === "cabin");
-    statusEl.textContent = view.detail;
-    markButtons(viewKey === "reset" ? "exterior" : viewKey);
-  }
-
-  function handleViewClick(event) {
-    const button = event.target.closest("[data-tour-view]");
-    if (!button) {
-      return;
-    }
-    setView(button.dataset.tourView);
-  }
-
-  document.querySelector("#paintToggle")?.addEventListener("click", () => {
-    paintIndex = (paintIndex + 1) % vehicle.tourPaintOptions.length;
-    showroom.paintMaterial.color.set(vehicle.tourPaintOptions[paintIndex]);
-  });
-
-  document.querySelector("#spinToggle")?.addEventListener("click", (event) => {
-    autoRotate = !autoRotate;
-    event.currentTarget.textContent = autoRotate ? "Stop rotate" : "Auto rotate";
-  });
-
-  controlsButtons.forEach((button) => button.addEventListener("click", handleViewClick));
-  setView("exterior");
-
-  const onResize = () => {
-    const nextWidth = mount.parentElement.clientWidth;
-    const nextHeight = mount.parentElement.clientHeight;
-    camera.aspect = nextWidth / nextHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(nextWidth, nextHeight);
-  };
-
-  let disposed = false;
-  const animate = () => {
-    if (disposed || !els.vehicleModal.open) {
-      return;
-    }
-    requestAnimationFrame(animate);
-    if (autoRotate) {
-      showroom.root.rotation.y += 0.01;
-    }
-    camera.position.lerp(cameraGoal, 0.08);
-    orbitControls.target.lerp(targetGoal, 0.08);
-    orbitControls.update();
-    renderer.render(scene, camera);
-  };
-
-  window.addEventListener("resize", onResize);
-  animate();
-
-  return () => {
-    if (disposed) {
-      return;
-    }
-    disposed = true;
-    window.removeEventListener("resize", onResize);
-    controlsButtons.forEach((button) => button.removeEventListener("click", handleViewClick));
-    orbitControls.dispose();
-    renderer.dispose();
-    scene.traverse((node) => {
-      if (node.isMesh) {
-        node.geometry?.dispose();
-      }
-    });
+  try {
+    const THREE = await ensureThree();
     mount.innerHTML = "";
-  };
-}
 
-function buildProceduralVehicle(vehicle) {
-  const profileMap = {
-    SUV: { length: 4.8, height: 0.92, width: 2.05, roofLength: 2.3, roofHeight: 1.78, wheelBase: 1.68, hoodTilt: -0.14, rearTilt: 0.12 },
-    Truck: { length: 5.3, height: 0.94, width: 2.12, roofLength: 1.95, roofHeight: 1.84, wheelBase: 1.9, hoodTilt: -0.08, rearTilt: 0.05 },
-    Sedan: { length: 4.9, height: 0.78, width: 1.94, roofLength: 2.45, roofHeight: 1.63, wheelBase: 1.76, hoodTilt: -0.18, rearTilt: 0.2 },
-    Coupe: { length: 4.7, height: 0.72, width: 1.9, roofLength: 2.05, roofHeight: 1.54, wheelBase: 1.7, hoodTilt: -0.2, rearTilt: 0.26 },
-    Crossover: { length: 4.55, height: 0.84, width: 1.98, roofLength: 2.18, roofHeight: 1.72, wheelBase: 1.63, hoodTilt: -0.15, rearTilt: 0.13 },
-    Minivan: { length: 5.05, height: 0.9, width: 2.08, roofLength: 2.8, roofHeight: 1.88, wheelBase: 1.82, hoodTilt: -0.09, rearTilt: 0.04 }
-  };
+    const width = mount.clientWidth || mount.parentElement.clientWidth || 640;
+    const height = mount.clientHeight || mount.parentElement.clientHeight || 360;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, width / height, 1, 1100);
+    camera.position.set(0, 0, 0.1);
 
-  const profile = profileMap[vehicle.bodyStyle] || profileMap.SUV;
-  const root = new THREE.Group();
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
+    mount.appendChild(renderer.domElement);
 
-  const paintMaterial = new THREE.MeshStandardMaterial({
-    color: vehicle.exteriorColor,
-    metalness: 0.34,
-    roughness: 0.4
-  });
-  const glassMaterial = new THREE.MeshStandardMaterial({
-    color: 0xb8d0da,
-    metalness: 0.1,
-    roughness: 0.2,
-    transparent: true,
-    opacity: 0.78
-  });
-  const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x232629, roughness: 0.72 });
-  const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xd4dade, metalness: 0.78, roughness: 0.25 });
-  const seatMaterial = new THREE.MeshStandardMaterial({ color: 0xb8a89a, roughness: 0.85 });
-  const dashMaterial = new THREE.MeshStandardMaterial({ color: 0x35383c, roughness: 0.65 });
+    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    geometry.scale(-1, 1, 1);
 
-  const base = new THREE.Mesh(new THREE.BoxGeometry(profile.length, profile.height, profile.width), paintMaterial);
-  base.position.y = 1;
-  root.add(base);
+    const texture = await new THREE.TextureLoader().loadAsync(INTERIOR_PANORAMA);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
 
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(profile.roofLength, 0.68, profile.width - 0.32), paintMaterial);
-  roof.position.set(0.05, profile.roofHeight, 0);
-  root.add(roof);
+    let lon = 0;
+    let lat = -2;
+    let targetLon = lon;
+    let targetLat = lat;
+    let isPointerDown = false;
+    let pointerX = 0;
+    let pointerY = 0;
+    let startLon = 0;
+    let startLat = 0;
+    let frameId = 0;
+    let disposed = false;
 
-  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.26, profile.width - 0.24), paintMaterial);
-  hood.position.set(profile.length / 2 - 0.72, 1.22, 0);
-  hood.rotation.z = profile.hoodTilt;
-  root.add(hood);
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
 
-  const rear = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.34, profile.width - 0.24), paintMaterial);
-  rear.position.set(-profile.length / 2 + 0.72, 1.2, 0);
-  rear.rotation.z = profile.rearTilt;
-  root.add(rear);
+    function setPreset(presetKey) {
+      const preset = INTERIOR_PRESETS.find((item) => item.key === presetKey) || INTERIOR_PRESETS[0];
+      targetLon = preset.lon;
+      targetLat = preset.lat;
+      statusEl.textContent = preset.detail;
+      presetButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.preset === preset.key);
+      });
+    }
 
-  const sideWindow = new THREE.Mesh(new THREE.BoxGeometry(profile.roofLength - 0.2, 0.38, 0.04), glassMaterial);
-  sideWindow.position.set(0.08, profile.roofHeight - 0.08, 0.82);
-  root.add(sideWindow);
-  const farSideWindow = sideWindow.clone();
-  farSideWindow.position.z = -0.82;
-  root.add(farSideWindow);
+    function adjustFov(delta) {
+      camera.fov = clamp(camera.fov + delta, 35, 90);
+      camera.updateProjectionMatrix();
+    }
 
-  const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.44, profile.width - 0.42), glassMaterial);
-  windshield.position.set(profile.length / 2 - 1.55, profile.roofHeight - 0.15, 0);
-  windshield.rotation.z = -0.48;
-  root.add(windshield);
+    function onPointerDown(event) {
+      isPointerDown = true;
+      mount.classList.add("is-dragging");
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      startLon = targetLon;
+      startLat = targetLat;
+    }
 
-  const rearWindow = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.38, profile.width - 0.48), glassMaterial);
-  rearWindow.position.set(-profile.length / 2 + 1.45, profile.roofHeight - 0.18, 0);
-  rearWindow.rotation.z = 0.5;
-  root.add(rearWindow);
+    function onPointerMove(event) {
+      if (!isPointerDown) {
+        return;
+      }
+      targetLon = startLon + (pointerX - event.clientX) * 0.12;
+      targetLat = clamp(startLat + (event.clientY - pointerY) * 0.12, -75, 75);
+    }
 
-  const frontBumper = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.34, profile.width - 0.28), darkMaterial);
-  frontBumper.position.set(profile.length / 2 + 0.08, 0.86, 0);
-  root.add(frontBumper);
+    function onPointerUp() {
+      isPointerDown = false;
+      mount.classList.remove("is-dragging");
+    }
 
-  const rearBumper = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.34, profile.width - 0.28), darkMaterial);
-  rearBumper.position.set(-profile.length / 2 - 0.06, 0.86, 0);
-  root.add(rearBumper);
+    function onWheel(event) {
+      event.preventDefault();
+      adjustFov(event.deltaY > 0 ? 3 : -3);
+    }
 
-  const grillWidth = vehicle.fuel === "Electric" ? 0.54 : 0.94;
-  const grill = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.46, grillWidth), trimMaterial);
-  grill.position.set(profile.length / 2 + 0.18, 1.05, 0);
-  root.add(grill);
+    function onResize() {
+      if (!mount.isConnected) {
+        return;
+      }
+      const nextWidth = mount.clientWidth || mount.parentElement.clientWidth || width;
+      const nextHeight = mount.clientHeight || mount.parentElement.clientHeight || height;
+      camera.aspect = nextWidth / nextHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nextWidth, nextHeight);
+    }
 
-  const cabin = new THREE.Group();
-  const frontSeatLeft = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.62, 0.42), seatMaterial);
-  frontSeatLeft.position.set(0.7, 1.16, 0.4);
-  cabin.add(frontSeatLeft);
-  const frontSeatRight = frontSeatLeft.clone();
-  frontSeatRight.position.z = -0.4;
-  cabin.add(frontSeatRight);
+    function animate() {
+      if (disposed) {
+        return;
+      }
+      frameId = window.requestAnimationFrame(animate);
+      lon += (targetLon - lon) * 0.1;
+      lat += (targetLat - lat) * 0.1;
 
-  const rearSeat = new THREE.Mesh(
-    new THREE.BoxGeometry(vehicle.bodyStyle === "Minivan" ? 1.3 : 0.95, 0.5, vehicle.bodyStyle === "Coupe" ? 0.76 : 1.2),
-    seatMaterial
-  );
-  rearSeat.position.set(vehicle.bodyStyle === "Minivan" ? -0.45 : -0.3, 1.1, 0);
-  cabin.add(rearSeat);
+      const phi = THREE.MathUtils.degToRad(90 - lat);
+      const theta = THREE.MathUtils.degToRad(lon);
+      const x = 500 * Math.sin(phi) * Math.cos(theta);
+      const y = 500 * Math.cos(phi);
+      const z = 500 * Math.sin(phi) * Math.sin(theta);
 
-  if (vehicle.bodyStyle === "Minivan") {
-    const thirdRow = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.46, 1.16), seatMaterial);
-    thirdRow.position.set(-1.5, 1.04, 0);
-    cabin.add(thirdRow);
+      camera.lookAt(x, y, z);
+      renderer.render(scene, camera);
+    }
+
+    function handlePresetClick(event) {
+      const button = event.currentTarget;
+      setPreset(button.dataset.preset);
+    }
+
+    mount.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    mount.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("resize", onResize);
+    presetButtons.forEach((button) => button.addEventListener("click", handlePresetClick));
+    zoomInButton?.addEventListener("click", () => adjustFov(-6));
+    zoomOutButton?.addEventListener("click", () => adjustFov(6));
+
+    setPreset(INTERIOR_PRESETS[0].key);
+    animate();
+
+    return () => {
+      if (disposed) {
+        return;
+      }
+      disposed = true;
+      window.cancelAnimationFrame(frameId);
+      mount.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      mount.removeEventListener("wheel", onWheel);
+      window.removeEventListener("resize", onResize);
+      presetButtons.forEach((button) => button.removeEventListener("click", handlePresetClick));
+      texture.dispose();
+      material.dispose();
+      geometry.dispose();
+      renderer.dispose();
+      mount.innerHTML = "";
+    };
+  } catch (error) {
+    console.error("Failed to load the 360 viewer.", error);
+    mount.innerHTML = `<div class="viewer-loading viewer-loading-error">The 360 viewer failed to load.</div>`;
+    statusEl.textContent = "The interior panorama could not be loaded in this browser session.";
+    return null;
   }
-
-  const dashboard = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.26, 1.3), dashMaterial);
-  dashboard.position.set(1.35, 1.45, 0);
-  cabin.add(dashboard);
-
-  const console = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.18, 0.28), dashMaterial);
-  console.position.set(0.32, 1.02, 0);
-  cabin.add(console);
-  root.add(cabin);
-
-  if (vehicle.bodyStyle === "Truck") {
-    const bed = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.46, 1.62), darkMaterial);
-    bed.position.set(-1.65, 1.12, 0);
-    root.add(bed);
-  }
-
-  if (vehicle.bodyStyle === "Coupe") {
-    const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 1.1), trimMaterial);
-    spoiler.position.set(-1.95, 1.52, 0);
-    root.add(spoiler);
-  }
-
-  if (vehicle.bodyStyle === "SUV" || vehicle.bodyStyle === "Crossover") {
-    const roofPanel = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 1.08), darkMaterial);
-    roofPanel.position.set(0.06, profile.roofHeight + 0.33, 0);
-    root.add(roofPanel);
-  }
-
-  const wheelZ = profile.width / 2 - 0.93;
-  [
-    [profile.wheelBase, 0.54, wheelZ],
-    [-profile.wheelBase, 0.54, wheelZ],
-    [profile.wheelBase, 0.54, -wheelZ],
-    [-profile.wheelBase, 0.54, -wheelZ]
-  ].forEach(([x, y, z]) => {
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.38, 30), darkMaterial);
-    tire.rotation.z = Math.PI / 2;
-    tire.position.set(x, y, z);
-    root.add(tire);
-
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.4, 22), trimMaterial);
-    wheel.rotation.z = Math.PI / 2;
-    wheel.position.set(x, y, z);
-    root.add(wheel);
-  });
-
-  return { root, paintMaterial, glassMaterial, trimMaterial };
 }
 
 function initializeFilters() {

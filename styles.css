@@ -296,6 +296,14 @@ select {
   height: 100%;
 }
 
+.panorama-root {
+  cursor: grab;
+}
+
+.panorama-root.is-dragging {
+  cursor: grabbing;
+}
+
 .hero-card-copy h2,
 .section-heading h2,
 .tool-card h3,
@@ -555,6 +563,18 @@ select {
 .tour-view-button.is-active {
   background: var(--highlight);
   color: white;
+}
+
+.viewer-loading {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  color: var(--muted);
+  padding: 1rem;
+}
+
+.viewer-loading-error {
+  color: var(--accent-deep);
 }
 
 .modal-copy {
