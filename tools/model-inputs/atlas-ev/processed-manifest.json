@@ -1,0 +1,37 @@
+{
+  "name": "Atlas EV Multi-Image Showcase",
+  "views": [
+    {
+      "label": "Front Left",
+      "file": ".\\processed\\front-left.png",
+      "yaw": -35,
+      "radius": 1.35,
+      "scale": 1.55,
+      "yOffset": 0
+    },
+    {
+      "label": "Left Side",
+      "file": ".\\processed\\left.png",
+      "yaw": -90,
+      "radius": 1.45,
+      "scale": 1.52,
+      "yOffset": 0
+    },
+    {
+      "label": "Rear Left",
+      "file": ".\\processed\\rear-left.png",
+      "yaw": -145,
+      "radius": 1.35,
+      "scale": 1.55,
+      "yOffset": 0
+    },
+    {
+      "label": "Rear",
+      "file": ".\\processed\\rear.png",
+      "yaw": 180,
+      "radius": 1.25,
+      "scale": 1.48,
+      "yOffset": 0
+    }
+  ]
+}

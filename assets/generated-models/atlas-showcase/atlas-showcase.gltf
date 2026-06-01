@@ -1,0 +1,309 @@
+{
+  "nodes": [
+    {
+      "scale": [
+        3.049362,
+        1.55,
+        1
+      ],
+      "rotation": [
+        0,
+        -0.3007057995042731,
+        0,
+        0.9537169507482269
+      ],
+      "mesh": 0,
+      "name": "Front Left",
+      "translation": [
+        -0.774328,
+        0.0,
+        1.105855
+      ]
+    },
+    {
+      "scale": [
+        4.005808,
+        1.52,
+        1
+      ],
+      "rotation": [
+        0,
+        -0.7071067811865476,
+        0,
+        0.7071067811865476
+      ],
+      "mesh": 1,
+      "name": "Left Side",
+      "translation": [
+        -1.45,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "scale": [
+        3.1569,
+        1.55,
+        1
+      ],
+      "rotation": [
+        0,
+        -0.9537169507482268,
+        0,
+        0.3007057995042733
+      ],
+      "mesh": 2,
+      "name": "Rear Left",
+      "translation": [
+        -0.774328,
+        0.0,
+        -1.105855
+      ]
+    },
+    {
+      "scale": [
+        1.682168,
+        1.48,
+        1
+      ],
+      "rotation": [
+        0,
+        1.0,
+        0,
+        6.123233995736766E-17
+      ],
+      "mesh": 3,
+      "name": "Rear",
+      "translation": [
+        0.0,
+        0.0,
+        -1.25
+      ]
+    }
+  ],
+  "asset": {
+    "generator": "Northstar Multi-Plane Vehicle Generator",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "target": 34962,
+      "byteLength": 48,
+      "buffer": 0,
+      "byteOffset": 0
+    },
+    {
+      "target": 34962,
+      "byteLength": 32,
+      "buffer": 0,
+      "byteOffset": 48
+    },
+    {
+      "target": 34963,
+      "byteLength": 12,
+      "buffer": 0,
+      "byteOffset": 80
+    }
+  ],
+  "scenes": [
+    {
+      "name": "Atlas EV Multi-Image Showcase",
+      "nodes": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "data:application/octet-stream;base64,AAAAvwAAAL8AAAAAAAAAPwAAAL8AAAAAAAAAPwAAAD8AAAAAAAAAvwAAAD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAAAAAAAEAAgAAAAIAAwA=",
+      "byteLength": 92
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Front Left",
+      "primitives": [
+        {
+          "material": 0,
+          "indices": 2,
+          "attributes": {
+            "TEXCOORD_0": 1,
+            "POSITION": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Left Side",
+      "primitives": [
+        {
+          "material": 1,
+          "indices": 2,
+          "attributes": {
+            "TEXCOORD_0": 1,
+            "POSITION": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rear Left",
+      "primitives": [
+        {
+          "material": 2,
+          "indices": 2,
+          "attributes": {
+            "TEXCOORD_0": 1,
+            "POSITION": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rear",
+      "primitives": [
+        {
+          "material": 3,
+          "indices": 2,
+          "attributes": {
+            "TEXCOORD_0": 1,
+            "POSITION": 0
+          }
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
+        "roughnessFactor": 1
+      },
+      "alphaMode": "BLEND",
+      "name": "Front Left",
+      "doubleSided": true
+    },
+    {
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 1
+        },
+        "roughnessFactor": 1
+      },
+      "alphaMode": "BLEND",
+      "name": "Left Side",
+      "doubleSided": true
+    },
+    {
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 2
+        },
+        "roughnessFactor": 1
+      },
+      "alphaMode": "BLEND",
+      "name": "Rear Left",
+      "doubleSided": true
+    },
+    {
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 3
+        },
+        "roughnessFactor": 1
+      },
+      "alphaMode": "BLEND",
+      "name": "Rear",
+      "doubleSided": true
+    }
+  ],
+  "scene": 0,
+  "images": [
+    {
+      "uri": "front-left.png"
+    },
+    {
+      "uri": "left.png"
+    },
+    {
+      "uri": "rear-left.png"
+    },
+    {
+      "uri": "rear.png"
+    }
+  ],
+  "samplers": [
+    {}
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0.5,
+        0.5,
+        0
+      ],
+      "type": "VEC3",
+      "min": [
+        -0.5,
+        -0.5,
+        0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        1,
+        1
+      ],
+      "type": "VEC2",
+      "min": [
+        0,
+        0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5123,
+      "count": 6,
+      "max": [
+        3
+      ],
+      "type": "SCALAR",
+      "min": [
+        0
+      ]
+    }
+  ]
+}

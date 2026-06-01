@@ -290,14 +290,15 @@ select {
   font-size: 0.82rem;
 }
 
-#threeRoot,
-#threeRoot canvas {
+#panoramaRoot,
+#panoramaRoot canvas {
   width: 100%;
   height: 100%;
 }
 
 .panorama-root {
   cursor: grab;
+  touch-action: none;
 }
 
 .panorama-root.is-dragging {
@@ -527,42 +528,106 @@ select {
   gap: 1rem;
 }
 
-.modal-viewer {
-  min-height: 340px;
+.tour-shell {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.9rem;
   border-radius: 24px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #dfe9ec 0%, #f5efe6 100%);
-  position: relative;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(17, 75, 95, 0.1);
 }
 
-.viewer-overlay {
-  position: absolute;
-  inset: auto 1rem 1rem 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.viewer-toolbar {
+.viewer-switcher,
+.viewer-chip-row,
+.tour-bullets {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.viewer-overlay button,
+.viewer-tab,
+.tour-view-button,
+.viewer-action-button,
 .tour-hotspot-button {
-  border: 0;
+  border: 1px solid rgba(17, 75, 95, 0.12);
   border-radius: 18px;
   padding: 0.65rem 0.9rem;
   background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
   cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.tour-view-button.is-active {
+.viewer-tab:hover,
+.tour-view-button:hover,
+.viewer-action-button:hover,
+.tour-hotspot-button:hover {
+  transform: translateY(-1px);
+}
+
+.viewer-tab.is-active,
+.tour-view-button.is-active,
+.viewer-action-button.is-active {
   background: var(--highlight);
   color: white;
+  border-color: transparent;
+}
+
+.viewer-panel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.viewer-stage {
+  min-height: 340px;
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, #dfe9ec 0%, #f5efe6 100%);
+}
+
+.viewer-panel[hidden] {
+  display: none !important;
+}
+
+.viewer-controls {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.viewer-chip-row-secondary {
+  padding-top: 0.15rem;
+}
+
+.viewer-status {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.viewer-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.model-viewer-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+.generated-model-viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  --poster-color: transparent;
+  touch-action: pan-y;
+}
+
+.generated-model-viewer::part(default-progress-bar) {
+  display: none;
 }
 
 .viewer-loading {
@@ -575,6 +640,18 @@ select {
 
 .viewer-loading-error {
   color: var(--accent-deep);
+}
+
+.viewer-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(244, 239, 231, 0.92), rgba(239, 232, 219, 0.92));
+  transition: opacity 180ms ease;
+}
+
+.viewer-loading-overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .modal-copy {
@@ -594,6 +671,18 @@ select {
 .tour-panel {
   display: grid;
   gap: 0.7rem;
+}
+
+.tour-bullets {
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 1rem;
+  margin: 0;
+  color: var(--muted);
+}
+
+.tour-bullets li {
+  margin: 0;
 }
 
 .tour-hotspots {
@@ -655,6 +744,11 @@ select {
 
   .modal-layout {
     grid-template-columns: 1.2fr 0.8fr;
+  }
+
+  .viewer-stage,
+  .generated-model-viewer {
+    min-height: 400px;
   }
 }
 

@@ -1,3 +1,6 @@
+const SAMPLE_INTERIOR_PANORAMA = "./assets/panoramas/vehicle-interior-360.png";
+const SAMPLE_GENERATED_MODEL = "./assets/generated-models/atlas-showcase/atlas-showcase.gltf";
+
 export const vehicles = [
   {
     id: "NSM-2401",
@@ -21,11 +24,14 @@ export const vehicles = [
     stock: "2401",
     rating: 4.9,
     dealerNote: "Flagship EV with panoramic roof, adaptive suspension, and OTA updates.",
-    badges: ["3D Tour", "One-Owner Demo", "Home Delivery"],
+    badges: ["360 Interior", "Generated 3D", "Home Delivery"],
     packages: ["Tech Suite", "Cold Weather", "Premium Audio"],
     features: ["360 Camera", "Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Third Row", "Wireless Charging"],
     highlights: ["312-mile range", "12-speaker Meridian audio", "Hands-free liftgate"],
     photo: "./assets/vehicles/atlas-ev-suv.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
+    generatedModel: SAMPLE_GENERATED_MODEL,
+    generatedModelSummary: "Generated from four 2D studio angles and exported as a static glTF showcase asset.",
     availability: "Available now",
     tourPaintOptions: ["#4357ad", "#114b5f", "#d9ddd5"],
     tourHotspots: [
@@ -61,6 +67,7 @@ export const vehicles = [
     features: ["Tow Hitch", "Apple CarPlay", "Ventilated Seats", "Blind Spot Monitor", "Remote Start", "Heads-Up Display"],
     highlights: ["11,900 lb towing", "Multi-flex tailgate", "Surround vision"],
     photo: "./assets/vehicles/sierra-truck.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#7d4e57", "#2f3235", "#d8d2ca"],
     tourHotspots: [
@@ -96,6 +103,7 @@ export const vehicles = [
     features: ["Adaptive Cruise", "Sunroof", "Heated Seats", "Apple CarPlay", "Lane Keep Assist", "Wireless Charging"],
     highlights: ["48 mpg combined", "Leather-trimmed interior", "Bose audio"],
     photo: "./assets/vehicles/aster-sedan.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#2e6f57", "#64756c", "#d9d4ca"],
     tourHotspots: [
@@ -126,11 +134,12 @@ export const vehicles = [
     stock: "2407",
     rating: 4.9,
     dealerNote: "Performance coupe with track package, dynamic exhaust, and upgraded brakes.",
-    badges: ["3D Tour", "New Arrival"],
+    badges: ["360 Interior", "New Arrival"],
     packages: ["Track", "Driver Vision", "Carbon Trim"],
     features: ["Apple CarPlay", "Launch Control", "Adaptive Cruise", "Blind Spot Monitor", "Heads-Up Display", "Premium Audio"],
     highlights: ["0-60 in 4.1 sec", "Performance exhaust", "Adaptive dampers"],
     photo: "./assets/vehicles/corsa-coupe.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#b94e29", "#8e2421", "#c7c8cb"],
     tourHotspots: [
@@ -166,6 +175,7 @@ export const vehicles = [
     features: ["360 Camera", "Tow Hitch", "Heated Seats", "Blind Spot Monitor", "Remote Start", "Navigation"],
     highlights: ["Terrain response modes", "Roof platform included", "All-weather mats"],
     photo: "./assets/vehicles/summit-suv.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "In transit",
     tourPaintOptions: ["#6d7d46", "#44503d", "#d2d0c3"],
     tourHotspots: [
@@ -201,6 +211,7 @@ export const vehicles = [
     features: ["Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "360 Camera", "Wireless Charging", "Hands-Free Liftgate"],
     highlights: ["274-mile range", "Heat pump", "Level 2 charging cable included"],
     photo: "./assets/vehicles/cityline-crossover.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#5e7ce2", "#2746ac", "#d5dbe9"],
     tourHotspots: [
@@ -231,11 +242,12 @@ export const vehicles = [
     stock: "2411",
     rating: 4.9,
     dealerNote: "Family-focused hybrid with power doors, rear entertainment, and flexible seating.",
-    badges: ["3D Tour", "Family Pick"],
+    badges: ["360 Interior", "Family Pick"],
     packages: ["Rear Media", "Safety Elite", "Lounge Seating"],
     features: ["Third Row", "Heated Seats", "Ventilated Seats", "Apple CarPlay", "360 Camera", "Rear Entertainment"],
     highlights: ["Stow-flat third row", "Dual power sliders", "35 mpg combined"],
     photo: "./assets/vehicles/voyager-minivan.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#556270", "#2e3a48", "#d8d8d4"],
     tourHotspots: [
@@ -271,6 +283,7 @@ export const vehicles = [
     features: ["Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Panoramic Roof", "Navigation", "Tow Hitch"],
     highlights: ["Long-range diesel", "Massage front seats", "Air suspension"],
     photo: "./assets/vehicles/aurora-suv.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#815355", "#53383f", "#d4ceca"],
     tourHotspots: [
@@ -301,11 +314,12 @@ export const vehicles = [
     stock: "2409",
     rating: 4.9,
     dealerNote: "Luxury EV sedan with a long-range battery, dual-motor AWD, and a quiet executive cabin.",
-    badges: ["3D Tour", "Executive EV"],
+    badges: ["360 Interior", "Executive EV"],
     packages: ["Lounge Interior", "Pilot Assist", "Premium Glass"],
     features: ["360 Camera", "Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Wireless Charging", "Heads-Up Display"],
     highlights: ["351-mile range", "Executive rear legroom", "Dual-motor AWD"],
     photo: "./assets/vehicles/solstice-sedan.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#f0f0eb", "#cfd5da", "#1a1f24"],
     tourHotspots: [
@@ -341,6 +355,7 @@ export const vehicles = [
     features: ["Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Remote Start", "Wireless Charging", "Navigation"],
     highlights: ["Compact city size", "AWD confidence", "Premium trim"],
     photo: "./assets/vehicles/pulse-crossover.png",
+    interiorPanorama: SAMPLE_INTERIOR_PANORAMA,
     availability: "Available now",
     tourPaintOptions: ["#1d2125", "#4e5256", "#dbd7d2"],
     tourHotspots: [
