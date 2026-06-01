@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Northstar Motors is a mobile-first dealership website demo with inventory browsing, finance tools, and immersive 3D vehicle tours.">
+  <title>Northstar Motors | Modern Dealership Inventory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#home">
+        <span class="brand-mark">N</span>
+        <span>
+          <strong>Northstar Motors</strong>
+          <small>Modern retail inventory</small>
+        </span>
+      </a>
+      <nav class="topnav">
+        <a href="#inventory">Inventory</a>
+        <a href="#tools">Tools</a>
+        <a href="#experience">3D Tours</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button id="favoritesButton" class="pill-button" type="button">Saved <span data-favorites-count>0</span></button>
+    </header>
+
+    <main id="home">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Mobile-first dealership platform</p>
+          <h1>Browse, compare, finance, and step inside every vehicle in 3D.</h1>
+          <p class="hero-text">A complete dealership site concept with inventory search, financing, trade-in estimates, lead capture, and a virtual walkaround experience that differentiates the shopping journey.</p>
+          <div class="hero-actions">
+            <a class="cta-primary" href="#inventory">Shop inventory</a>
+            <button id="heroTourButton" class="cta-secondary" type="button">Launch 3D demo</button>
+          </div>
+          <dl class="hero-stats">
+            <div>
+              <dt>24/7</dt>
+              <dd>digital showroom</dd>
+            </div>
+            <div>
+              <dt>8</dt>
+              <dd>sample vehicles</dd>
+            </div>
+            <div>
+              <dt>4.9</dt>
+              <dd>dealer rating</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-header">
+            <span>Featured arrival</span>
+            <span>3D Tour Ready</span>
+          </div>
+          <div id="featuredVehicleArt" class="hero-vehicle-art"></div>
+          <div class="hero-card-copy">
+            <h2 id="featuredVehicleTitle"></h2>
+            <p id="featuredVehicleMeta"></p>
+            <div class="hero-card-tags" id="featuredVehicleTags"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-strip">
+        <article>
+          <strong>Home delivery</strong>
+          <span>Up to 250 miles</span>
+        </article>
+        <article>
+          <strong>Instant credit app</strong>
+          <span>Decision in minutes</span>
+        </article>
+        <article>
+          <strong>Trade-in offers</strong>
+          <span>Live market estimate</span>
+        </article>
+        <article>
+          <strong>3D vehicle tours</strong>
+          <span>Exterior and cabin hotspots</span>
+        </article>
+      </section>
+
+      <section id="inventory" class="inventory-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Full inventory experience</p>
+            <h2>Every feature shoppers expect, in one responsive flow.</h2>
+          </div>
+          <p id="inventorySummary" class="section-note"></p>
+        </div>
+
+        <div class="inventory-layout">
+          <aside class="filters-panel">
+            <div class="filter-block">
+              <label for="searchInput">Search</label>
+              <input id="searchInput" type="search" placeholder="Model, trim, feature, stock...">
+            </div>
+            <div class="filter-grid">
+              <div class="filter-block">
+                <label for="conditionFilter">Condition</label>
+                <select id="conditionFilter"></select>
+              </div>
+              <div class="filter-block">
+                <label for="bodyFilter">Body style</label>
+                <select id="bodyFilter"></select>
+              </div>
+              <div class="filter-block">
+                <label for="fuelFilter">Fuel</label>
+                <select id="fuelFilter"></select>
+              </div>
+              <div class="filter-block">
+                <label for="drivetrainFilter">Drivetrain</label>
+                <select id="drivetrainFilter"></select>
+              </div>
+              <div class="filter-block">
+                <label for="priceFilter">Max price</label>
+                <input id="priceFilter" type="range" min="15000" max="95000" step="1000" value="95000">
+                <output id="priceOutput">$95,000</output>
+              </div>
+              <div class="filter-block">
+                <label for="paymentFilter">Max est. payment</label>
+                <input id="paymentFilter" type="range" min="250" max="1500" step="25" value="1500">
+                <output id="paymentOutput">$1,500/mo</output>
+              </div>
+            </div>
+            <div class="filter-block">
+              <span>Must-have features</span>
+              <div id="featureFilters" class="feature-chips"></div>
+            </div>
+            <div class="filter-actions">
+              <button id="resetFilters" class="cta-secondary" type="button">Reset filters</button>
+              <button id="sortButton" class="pill-button" type="button">Sort: Featured</button>
+            </div>
+          </aside>
+
+          <div>
+            <div id="inventoryGrid" class="inventory-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tools" class="tools-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Lead conversion tools</p>
+            <h2>Finance, trade-in, and appointment flows built into the storefront.</h2>
+          </div>
+        </div>
+
+        <div class="tools-grid">
+          <article class="tool-card">
+            <h3>Payment calculator</h3>
+            <form id="financeForm" class="stack-form">
+              <label>Vehicle price
+                <input name="price" type="number" min="0" value="42890">
+              </label>
+              <label>Down payment
+                <input name="down" type="number" min="0" value="4500">
+              </label>
+              <label>APR %
+                <input name="apr" type="number" min="0" step="0.1" value="5.9">
+              </label>
+              <label>Term in months
+                <select name="term">
+                  <option>36</option>
+                  <option>48</option>
+                  <option selected>60</option>
+                  <option>72</option>
+                  <option>84</option>
+                </select>
+              </label>
+              <button class="cta-primary" type="submit">Estimate payment</button>
+            </form>
+            <p id="financeOutput" class="tool-output"></p>
+          </article>
+
+          <article class="tool-card">
+            <h3>Trade-in estimator</h3>
+            <form id="tradeForm" class="stack-form">
+              <label>Current vehicle
+                <input name="vehicle" type="text" value="2018 Honda Accord EX-L">
+              </label>
+              <label>Mileage
+                <input name="miles" type="number" min="0" value="68420">
+              </label>
+              <label>Condition
+                <select name="condition">
+                  <option>Excellent</option>
+                  <option selected>Good</option>
+                  <option>Fair</option>
+                </select>
+              </label>
+              <button class="cta-primary" type="submit">Get estimate</button>
+            </form>
+            <p id="tradeOutput" class="tool-output"></p>
+          </article>
+
+          <article class="tool-card">
+            <h3>Schedule a test drive</h3>
+            <form id="driveForm" class="stack-form">
+              <label>Name
+                <input name="name" type="text" value="Jordan Lee">
+              </label>
+              <label>Email
+                <input name="email" type="email" value="jordan@example.com">
+              </label>
+              <label>Preferred vehicle
+                <select id="driveVehicleSelect" name="vehicle"></select>
+              </label>
+              <label>Preferred date
+                <input name="date" type="date">
+              </label>
+              <button class="cta-primary" type="submit">Reserve slot</button>
+            </form>
+            <p id="driveOutput" class="tool-output"></p>
+          </article>
+        </div>
+      </section>
+
+      <section id="experience" class="experience-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Differentiator</p>
+            <h2>Immersive 3D virtual tours for every listing.</h2>
+          </div>
+          <p class="section-note">Each vehicle detail view includes a showroom-style 3D scene with guided hotspots. This demo uses procedural models so the capability works on GitHub Pages without a backend.</p>
+        </div>
+        <div class="experience-grid">
+          <article class="experience-card">
+            <h3>Exterior walkaround</h3>
+            <p>Orbit the vehicle, change paint, and inspect body style proportions before visiting the lot.</p>
+          </article>
+          <article class="experience-card">
+            <h3>Interior feature hotspots</h3>
+            <p>Tap the cabin, cargo area, and wheel callouts to highlight premium features and package options.</p>
+          </article>
+          <article class="experience-card">
+            <h3>Sales-ready presentation</h3>
+            <p>Use 3D tours in listings, email follow-ups, or showroom kiosks to differentiate from typical inventory grids.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact" class="footer">
+      <div>
+        <strong>Northstar Motors</strong>
+        <p>1420 Lakeview Parkway, Chicago, IL 60607</p>
+      </div>
+      <div>
+        <p>sales@northstarmotors.demo</p>
+        <p>(312) 555-0188</p>
+      </div>
+      <div>
+        <p>Mon-Sat: 9am-8pm</p>
+        <p>Sun: 11am-5pm</p>
+      </div>
+    </footer>
+  </div>
+
+  <dialog id="vehicleModal" class="vehicle-modal">
+    <div class="modal-shell">
+      <button id="closeModalButton" class="modal-close" type="button" aria-label="Close">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
