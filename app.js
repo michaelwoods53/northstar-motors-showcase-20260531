@@ -860,6 +860,7 @@ async function setupModelViewerExperience(vehicle) {
   let cinematicFrame = 0;
   let cinematicActive = false;
   let orbitActive = false;
+  let readinessPoll = 0;
 
   function setModelButtonState(activeKey) {
     presetButtons.forEach((button) => {
@@ -896,6 +897,19 @@ async function setupModelViewerExperience(vehicle) {
     setModelButtonState(preset.key);
     statusEl.textContent = preset.detail;
     modelViewer.cameraOrbit = preset.orbit;
+  }
+
+  function hideModelLoading() {
+    loadingState?.classList.add("is-hidden");
+  }
+
+  function syncModelReadyState() {
+    const canvas = modelViewer.shadowRoot?.querySelector("canvas");
+    if (canvas && canvas.width > 0 && canvas.height > 0) {
+      hideModelLoading();
+      return true;
+    }
+    return false;
   }
 
   function handleModelPresetClick(event) {
@@ -949,7 +963,7 @@ async function setupModelViewerExperience(vehicle) {
   }
 
   const onLoad = () => {
-    loadingState?.classList.add("is-hidden");
+    hideModelLoading();
     resetModelView();
   };
 
@@ -980,10 +994,22 @@ async function setupModelViewerExperience(vehicle) {
   resetButton?.addEventListener("click", resetModelView);
 
   setPreset(MODEL_PRESETS[0].key);
+  if (!syncModelReadyState()) {
+    readinessPoll = window.setInterval(() => {
+      if (syncModelReadyState()) {
+        window.clearInterval(readinessPoll);
+        readinessPoll = 0;
+      }
+    }, 150);
+  }
 
   return () => {
     stopCinematic(true);
     setOrbitState(false);
+    if (readinessPoll) {
+      window.clearInterval(readinessPoll);
+      readinessPoll = 0;
+    }
     presetButtons.forEach((button) => button.removeEventListener("click", handleModelPresetClick));
     modelViewer.removeEventListener("load", onLoad);
     modelViewer.removeEventListener("error", onError);
