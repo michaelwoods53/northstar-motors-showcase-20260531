@@ -246,7 +246,8 @@ select {
 }
 
 .hero-vehicle-art,
-.inventory-art {
+.inventory-art,
+.modal-photo-panel {
   min-height: 220px;
   border-radius: var(--radius-lg);
   margin: 0.8rem 0;
@@ -255,7 +256,42 @@ select {
   background: linear-gradient(135deg, #dbe8ec, #f7efe5);
 }
 
-.vehicle-svg {
+.vehicle-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.hero-vehicle-photo {
+  min-height: 260px;
+}
+
+.modal-photo-panel {
+  min-height: 230px;
+  margin: 0;
+}
+
+.modal-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.photo-caption {
+  position: absolute;
+  left: 0.8rem;
+  bottom: 0.8rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+#threeRoot,
+#threeRoot canvas {
   width: 100%;
   height: 100%;
 }
@@ -478,6 +514,11 @@ select {
   gap: 1rem;
 }
 
+.modal-media {
+  display: grid;
+  gap: 1rem;
+}
+
 .modal-viewer {
   min-height: 340px;
   border-radius: 24px;
@@ -496,12 +537,24 @@ select {
   flex-wrap: wrap;
 }
 
-.viewer-overlay button {
+.viewer-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.viewer-overlay button,
+.tour-hotspot-button {
   border: 0;
-  border-radius: 999px;
+  border-radius: 18px;
   padding: 0.65rem 0.9rem;
   background: rgba(255, 255, 255, 0.92);
   cursor: pointer;
+}
+
+.tour-view-button.is-active {
+  background: var(--highlight);
+  color: white;
 }
 
 .modal-copy {
@@ -516,6 +569,31 @@ select {
 
 .status-good {
   color: var(--success);
+}
+
+.tour-panel {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.tour-hotspots {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.tour-hotspot-button {
+  text-align: left;
+  border: 1px solid rgba(17, 75, 95, 0.12);
+}
+
+.tour-hotspot-button span,
+.tour-hotspot-button small {
+  display: block;
+}
+
+.tour-hotspot-button small {
+  color: var(--muted);
+  margin-top: 0.25rem;
 }
 
 .empty-state {

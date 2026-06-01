@@ -15,6 +15,8 @@ const state = {
   favorites: new Set(JSON.parse(localStorage.getItem("northstar-favorites") || "[]"))
 };
 
+let disposeActiveViewer = null;
+
 const els = {
   featuredVehicleTitle: document.querySelector("#featuredVehicleTitle"),
   featuredVehicleMeta: document.querySelector("#featuredVehicleMeta"),
@@ -49,7 +51,11 @@ const els = {
 };
 
 function currency(value) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
 function compactNumber(value) {
@@ -60,31 +66,8 @@ function vehicleName(vehicle) {
   return `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`;
 }
 
-function createVehicleSVG(vehicle) {
-  return `
-    <svg class="vehicle-svg" viewBox="0 0 640 360" role="img" aria-label="${vehicleName(vehicle)}">
-      <defs>
-        <linearGradient id="body-${vehicle.id}" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="${vehicle.exteriorColor}"/>
-          <stop offset="100%" stop-color="#1f2a2e"/>
-        </linearGradient>
-      </defs>
-      <rect width="640" height="360" fill="transparent"/>
-      <ellipse cx="320" cy="300" rx="210" ry="28" fill="rgba(26,34,37,0.16)"/>
-      <path d="M135 226 C160 182, 215 150, 305 142 L420 136 C470 134, 520 170, 550 214 L575 248 L120 248 Z" fill="url(#body-${vehicle.id})"/>
-      <path d="M208 170 L310 156 L424 152 C455 152, 495 180, 515 212 L377 212 L330 175 L230 175 Z" fill="rgba(255,255,255,0.16)"/>
-      <circle cx="210" cy="252" r="37" fill="#1f2a2e"/>
-      <circle cx="490" cy="252" r="37" fill="#1f2a2e"/>
-      <circle cx="210" cy="252" r="18" fill="#d7dadd"/>
-      <circle cx="490" cy="252" r="18" fill="#d7dadd"/>
-      <rect x="182" y="185" width="145" height="42" rx="12" fill="rgba(226,238,242,0.75)"/>
-      <rect x="340" y="182" width="110" height="42" rx="12" fill="rgba(226,238,242,0.75)"/>
-      <rect x="520" y="215" width="28" height="10" rx="4" fill="#ffe2a6"/>
-      <rect x="135" y="219" width="24" height="11" rx="4" fill="#ffb39a"/>
-      <text x="42" y="60" fill="#1f2a2e" font-size="22" font-family="Manrope, sans-serif" font-weight="800">${vehicle.make.toUpperCase()}</text>
-      <text x="42" y="90" fill="#617074" font-size="18" font-family="Manrope, sans-serif">${vehicle.model} ${vehicle.trim}</text>
-    </svg>
-  `;
+function renderVehiclePhoto(vehicle, className = "vehicle-photo") {
+  return `<img class="${className}" src="${vehicle.photo}" alt="${vehicleName(vehicle)} photo" loading="lazy">`;
 }
 
 function populateSelect(select, values) {
@@ -96,7 +79,7 @@ function renderFeatured() {
   els.featuredVehicleTitle.textContent = vehicleName(featured);
   els.featuredVehicleMeta.textContent = `${currency(featured.price)} • ${featured.range} • ${featured.drivetrain} • Stock ${featured.stock}`;
   els.featuredVehicleTags.innerHTML = featured.badges.map((badge) => `<span>${badge}</span>`).join("");
-  els.featuredVehicleArt.innerHTML = createVehicleSVG(featured);
+  els.featuredVehicleArt.innerHTML = renderVehiclePhoto(featured, "vehicle-photo hero-vehicle-photo");
 }
 
 function getFilteredVehicles() {
@@ -169,7 +152,7 @@ function renderInventory() {
 
   els.inventoryGrid.innerHTML = filtered.map((vehicle) => `
     <article class="inventory-card">
-      <div class="inventory-art">${createVehicleSVG(vehicle)}</div>
+      <div class="inventory-art">${renderVehiclePhoto(vehicle)}</div>
       <div class="inventory-badges">${vehicle.badges.map((badge) => `<span>${badge}</span>`).join("")}</div>
       <h3>${vehicleName(vehicle)}</h3>
       <p class="inventory-meta">${vehicle.dealerNote}</p>
@@ -224,15 +207,28 @@ function openVehicleModal(vehicleId) {
     return;
   }
 
+  disposeActiveViewer?.();
+  disposeActiveViewer = null;
+
   els.modalContent.innerHTML = `
     <div class="modal-layout">
-      <section>
+      <section class="modal-media">
+        <div class="modal-photo-panel">
+          ${renderVehiclePhoto(vehicle, "modal-photo")}
+          <div class="photo-caption">Sample listing photo included with the project.</div>
+        </div>
         <div class="modal-viewer">
           <div id="threeRoot"></div>
           <div class="viewer-overlay">
-            <button type="button" id="paintToggle">Change paint</button>
-            <button type="button" id="spinToggle">Auto rotate</button>
-            <span class="tag">Interactive 3D demo</span>
+            <div class="viewer-toolbar">
+              <button type="button" data-tour-view="exterior" class="tour-view-button is-active">Exterior</button>
+              <button type="button" data-tour-view="cabin" class="tour-view-button">Cabin</button>
+              <button type="button" data-tour-view="reset" class="tour-view-button">Reset</button>
+            </div>
+            <div class="viewer-toolbar">
+              <button type="button" id="paintToggle">Change paint</button>
+              <button type="button" id="spinToggle">Auto rotate</button>
+            </div>
           </div>
         </div>
       </section>
@@ -260,9 +256,17 @@ function openVehicleModal(vehicleId) {
           <strong>Top features</strong>
           <p class="modal-meta">${vehicle.features.join(" • ")}</p>
         </div>
-        <div>
+        <div class="tour-panel">
           <strong>3D tour hotspots</strong>
-          <ul class="hotspot-list">${vehicle.hotspots.map((item) => `<li class="tag">${item}</li>`).join("")}</ul>
+          <div id="tourHotspots" class="tour-hotspots">
+            ${vehicle.tourHotspots.map((hotspot) => `
+              <button type="button" class="tour-hotspot-button" data-tour-view="${hotspot.view}">
+                <span>${hotspot.label}</span>
+                <small>${hotspot.detail}</small>
+              </button>
+            `).join("")}
+          </div>
+          <p id="tourStatus" class="modal-meta">${vehicle.tourHotspots[0].detail}</p>
         </div>
         <button class="cta-primary" type="button" id="modalDriveButton">Reserve this vehicle</button>
       </section>
@@ -270,7 +274,7 @@ function openVehicleModal(vehicleId) {
   `;
 
   els.vehicleModal.showModal();
-  setupThreeViewer(vehicle);
+  disposeActiveViewer = setupThreeViewer(vehicle);
 
   document.querySelector("#modalDriveButton")?.addEventListener("click", () => {
     els.vehicleModal.close();
@@ -281,76 +285,156 @@ function openVehicleModal(vehicleId) {
 
 function setupThreeViewer(vehicle) {
   const mount = document.querySelector("#threeRoot");
-  if (!mount) {
-    return;
+  const statusEl = document.querySelector("#tourStatus");
+  const controlsButtons = [...document.querySelectorAll("[data-tour-view]")];
+  if (!mount || !statusEl) {
+    return null;
   }
 
   mount.innerHTML = "";
   const width = mount.parentElement.clientWidth;
   const height = mount.parentElement.clientHeight;
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xe8ecec, 10, 24);
 
-  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-  camera.position.set(5.6, 2.8, 6.6);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xe8ecec, 8, 24);
+
+  const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+  camera.position.set(5.8, 2.7, 6.8);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   mount.appendChild(renderer.domElement);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.minDistance = 4;
-  controls.maxDistance = 11;
-  controls.target.set(0, 1.2, 0);
+  const orbitControls = new OrbitControls(camera, renderer.domElement);
+  orbitControls.enableDamping = true;
+  orbitControls.enablePan = false;
+  orbitControls.minDistance = 2.5;
+  orbitControls.maxDistance = 11;
+  orbitControls.target.set(0, 1.2, 0);
 
-  const ambient = new THREE.HemisphereLight(0xffffff, 0x425257, 1.25);
-  scene.add(ambient);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x425257, 1.3);
+  scene.add(hemi);
 
   const key = new THREE.DirectionalLight(0xffffff, 1.2);
-  key.position.set(4, 8, 6);
+  key.position.set(4, 9, 6);
   scene.add(key);
+
+  const rim = new THREE.DirectionalLight(0xc9e3f4, 0.45);
+  rim.position.set(-6, 4, -4);
+  scene.add(rim);
 
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(8, 64),
-    new THREE.MeshStandardMaterial({ color: 0xf4efe7, metalness: 0.1, roughness: 0.95 })
+    new THREE.MeshStandardMaterial({ color: 0xf4efe7, metalness: 0.08, roughness: 0.95 })
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.02;
   scene.add(floor);
 
   const turntable = new THREE.Mesh(
-    new THREE.CylinderGeometry(3.6, 3.6, 0.18, 48),
-    new THREE.MeshStandardMaterial({ color: 0xdad4ca, metalness: 0.2, roughness: 0.85 })
+    new THREE.CylinderGeometry(3.7, 3.7, 0.16, 56),
+    new THREE.MeshStandardMaterial({ color: 0xd9d3ca, metalness: 0.15, roughness: 0.9 })
   );
   turntable.position.y = 0.04;
   scene.add(turntable);
 
-  const car = buildProceduralVehicle(vehicle);
-  car.position.y = 0.4;
-  scene.add(car);
+  const showroom = buildProceduralVehicle(vehicle);
+  showroom.root.position.y = 0.36;
+  scene.add(showroom.root);
 
+  const cameraGoal = new THREE.Vector3(5.8, 2.7, 6.8);
+  const targetGoal = new THREE.Vector3(0, 1.2, 0);
   let autoRotate = false;
-  const paintToggle = document.querySelector("#paintToggle");
-  const spinToggle = document.querySelector("#spinToggle");
-  const alternatePaint = new THREE.Color("#114b5f");
-  const originalPaint = new THREE.Color(vehicle.exteriorColor);
-  let usingAlternate = false;
+  let paintIndex = 0;
 
-  paintToggle?.addEventListener("click", () => {
-    usingAlternate = !usingAlternate;
-    car.traverse((node) => {
-      if (node.isMesh && node.userData.paintable) {
-        node.material.color.copy(usingAlternate ? alternatePaint : originalPaint);
-      }
+  const views = {
+    exterior: {
+      position: new THREE.Vector3(5.8, 2.7, 6.8),
+      target: new THREE.Vector3(0, 1.2, 0),
+      detail: "Exterior orbit mode is active. Drag to inspect the vehicle from any angle."
+    },
+    reset: {
+      position: new THREE.Vector3(5.8, 2.7, 6.8),
+      target: new THREE.Vector3(0, 1.2, 0),
+      detail: "Camera reset to the standard showroom angle."
+    },
+    cabin: {
+      position: new THREE.Vector3(1.8, 1.75, 0.1),
+      target: new THREE.Vector3(-0.5, 1.45, 0),
+      detail: "Cabin mode fades the body shell so interior seating and dash geometry are visible."
+    },
+    front: {
+      position: new THREE.Vector3(4.7, 1.8, 3.1),
+      target: new THREE.Vector3(1.9, 1.05, 0),
+      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "front")?.detail || "Front quarter inspection."
+    },
+    rear: {
+      position: new THREE.Vector3(-4.8, 1.8, 3.1),
+      target: new THREE.Vector3(-1.9, 1.08, 0),
+      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "rear")?.detail || "Rear quarter inspection."
+    },
+    roof: {
+      position: new THREE.Vector3(0.15, 5.5, 0.2),
+      target: new THREE.Vector3(0, 1.75, 0),
+      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "roof")?.detail || "Top-down inspection."
+    },
+    cargo: {
+      position: new THREE.Vector3(-4.8, 2.1, 0),
+      target: new THREE.Vector3(-2.2, 1.1, 0),
+      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "cargo")?.detail || "Rear cargo inspection."
+    },
+    wheel: {
+      position: new THREE.Vector3(2.9, 1.15, 3.3),
+      target: new THREE.Vector3(1.65, 0.62, 1.05),
+      detail: vehicle.tourHotspots.find((hotspot) => hotspot.view === "wheel")?.detail || "Wheel-and-brake inspection."
+    }
+  };
+
+  function setShellOpacity(interiorMode) {
+    showroom.paintMaterial.transparent = interiorMode;
+    showroom.paintMaterial.opacity = interiorMode ? 0.22 : 1;
+    showroom.glassMaterial.opacity = interiorMode ? 0.08 : 0.78;
+    showroom.glassMaterial.transparent = true;
+    showroom.trimMaterial.opacity = interiorMode ? 0.45 : 1;
+    showroom.trimMaterial.transparent = interiorMode;
+  }
+
+  function markButtons(activeView) {
+    controlsButtons.forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.tourView === activeView);
     });
+  }
+
+  function setView(viewKey) {
+    const view = views[viewKey] || views.exterior;
+    cameraGoal.copy(view.position);
+    targetGoal.copy(view.target);
+    setShellOpacity(viewKey === "cabin");
+    statusEl.textContent = view.detail;
+    markButtons(viewKey === "reset" ? "exterior" : viewKey);
+  }
+
+  function handleViewClick(event) {
+    const button = event.target.closest("[data-tour-view]");
+    if (!button) {
+      return;
+    }
+    setView(button.dataset.tourView);
+  }
+
+  document.querySelector("#paintToggle")?.addEventListener("click", () => {
+    paintIndex = (paintIndex + 1) % vehicle.tourPaintOptions.length;
+    showroom.paintMaterial.color.set(vehicle.tourPaintOptions[paintIndex]);
   });
 
-  spinToggle?.addEventListener("click", () => {
+  document.querySelector("#spinToggle")?.addEventListener("click", (event) => {
     autoRotate = !autoRotate;
-    spinToggle.textContent = autoRotate ? "Stop rotate" : "Auto rotate";
+    event.currentTarget.textContent = autoRotate ? "Stop rotate" : "Auto rotate";
   });
+
+  controlsButtons.forEach((button) => button.addEventListener("click", handleViewClick));
+  setView("exterior");
 
   const onResize = () => {
     const nextWidth = mount.parentElement.clientWidth;
@@ -360,105 +444,187 @@ function setupThreeViewer(vehicle) {
     renderer.setSize(nextWidth, nextHeight);
   };
 
+  let disposed = false;
   const animate = () => {
-    if (!els.vehicleModal.open) {
-      window.removeEventListener("resize", onResize);
-      renderer.dispose();
-      controls.dispose();
+    if (disposed || !els.vehicleModal.open) {
       return;
     }
     requestAnimationFrame(animate);
     if (autoRotate) {
-      car.rotation.y += 0.01;
+      showroom.root.rotation.y += 0.01;
     }
-    controls.update();
+    camera.position.lerp(cameraGoal, 0.08);
+    orbitControls.target.lerp(targetGoal, 0.08);
+    orbitControls.update();
     renderer.render(scene, camera);
   };
 
   window.addEventListener("resize", onResize);
   animate();
+
+  return () => {
+    if (disposed) {
+      return;
+    }
+    disposed = true;
+    window.removeEventListener("resize", onResize);
+    controlsButtons.forEach((button) => button.removeEventListener("click", handleViewClick));
+    orbitControls.dispose();
+    renderer.dispose();
+    scene.traverse((node) => {
+      if (node.isMesh) {
+        node.geometry?.dispose();
+      }
+    });
+    mount.innerHTML = "";
+  };
 }
 
 function buildProceduralVehicle(vehicle) {
-  const root = new THREE.Group();
-  const paint = new THREE.MeshStandardMaterial({ color: vehicle.exteriorColor, metalness: 0.35, roughness: 0.45 });
-  const glass = new THREE.MeshStandardMaterial({ color: 0xb9d3dd, transparent: true, opacity: 0.8, roughness: 0.2, metalness: 0.1 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x232629, roughness: 0.7 });
-  const trim = new THREE.MeshStandardMaterial({ color: 0xd1d8dc, metalness: 0.75, roughness: 0.25 });
+  const profileMap = {
+    SUV: { length: 4.8, height: 0.92, width: 2.05, roofLength: 2.3, roofHeight: 1.78, wheelBase: 1.68, hoodTilt: -0.14, rearTilt: 0.12 },
+    Truck: { length: 5.3, height: 0.94, width: 2.12, roofLength: 1.95, roofHeight: 1.84, wheelBase: 1.9, hoodTilt: -0.08, rearTilt: 0.05 },
+    Sedan: { length: 4.9, height: 0.78, width: 1.94, roofLength: 2.45, roofHeight: 1.63, wheelBase: 1.76, hoodTilt: -0.18, rearTilt: 0.2 },
+    Coupe: { length: 4.7, height: 0.72, width: 1.9, roofLength: 2.05, roofHeight: 1.54, wheelBase: 1.7, hoodTilt: -0.2, rearTilt: 0.26 },
+    Crossover: { length: 4.55, height: 0.84, width: 1.98, roofLength: 2.18, roofHeight: 1.72, wheelBase: 1.63, hoodTilt: -0.15, rearTilt: 0.13 },
+    Minivan: { length: 5.05, height: 0.9, width: 2.08, roofLength: 2.8, roofHeight: 1.88, wheelBase: 1.82, hoodTilt: -0.09, rearTilt: 0.04 }
+  };
 
-  const base = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.85, 2.05), paint);
-  base.userData.paintable = true;
+  const profile = profileMap[vehicle.bodyStyle] || profileMap.SUV;
+  const root = new THREE.Group();
+
+  const paintMaterial = new THREE.MeshStandardMaterial({
+    color: vehicle.exteriorColor,
+    metalness: 0.34,
+    roughness: 0.4
+  });
+  const glassMaterial = new THREE.MeshStandardMaterial({
+    color: 0xb8d0da,
+    metalness: 0.1,
+    roughness: 0.2,
+    transparent: true,
+    opacity: 0.78
+  });
+  const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x232629, roughness: 0.72 });
+  const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xd4dade, metalness: 0.78, roughness: 0.25 });
+  const seatMaterial = new THREE.MeshStandardMaterial({ color: 0xb8a89a, roughness: 0.85 });
+  const dashMaterial = new THREE.MeshStandardMaterial({ color: 0x35383c, roughness: 0.65 });
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(profile.length, profile.height, profile.width), paintMaterial);
   base.position.y = 1;
   root.add(base);
 
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.72, 1.72), paint);
-  roof.userData.paintable = true;
-  roof.position.set(0.1, 1.7, 0);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(profile.roofLength, 0.68, profile.width - 0.32), paintMaterial);
+  roof.position.set(0.05, profile.roofHeight, 0);
   root.add(roof);
 
-  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.26, 1.82), paint);
-  hood.userData.paintable = true;
-  hood.position.set(1.72, 1.25, 0);
-  hood.rotation.z = -0.14;
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.26, profile.width - 0.24), paintMaterial);
+  hood.position.set(profile.length / 2 - 0.72, 1.22, 0);
+  hood.rotation.z = profile.hoodTilt;
   root.add(hood);
 
-  const rear = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.36, 1.82), paint);
-  rear.userData.paintable = true;
-  rear.position.set(-1.75, 1.22, 0);
-  rear.rotation.z = 0.12;
+  const rear = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.34, profile.width - 0.24), paintMaterial);
+  rear.position.set(-profile.length / 2 + 0.72, 1.2, 0);
+  rear.rotation.z = profile.rearTilt;
   root.add(rear);
 
-  const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.46, 1.58), glass);
-  windshield.position.set(0.86, 1.58, 0);
+  const sideWindow = new THREE.Mesh(new THREE.BoxGeometry(profile.roofLength - 0.2, 0.38, 0.04), glassMaterial);
+  sideWindow.position.set(0.08, profile.roofHeight - 0.08, 0.82);
+  root.add(sideWindow);
+  const farSideWindow = sideWindow.clone();
+  farSideWindow.position.z = -0.82;
+  root.add(farSideWindow);
+
+  const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.44, profile.width - 0.42), glassMaterial);
+  windshield.position.set(profile.length / 2 - 1.55, profile.roofHeight - 0.15, 0);
   windshield.rotation.z = -0.48;
   root.add(windshield);
 
-  const rearWindow = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.42, 1.55), glass);
-  rearWindow.position.set(-0.95, 1.55, 0);
-  rearWindow.rotation.z = 0.52;
+  const rearWindow = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.38, profile.width - 0.48), glassMaterial);
+  rearWindow.position.set(-profile.length / 2 + 1.45, profile.roofHeight - 0.18, 0);
+  rearWindow.rotation.z = 0.5;
   root.add(rearWindow);
 
-  const sideWindow = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.36, 0.04), glass);
-  sideWindow.position.set(0.1, 1.62, 0.82);
-  root.add(sideWindow);
-  const sideWindow2 = sideWindow.clone();
-  sideWindow2.position.z = -0.82;
-  root.add(sideWindow2);
+  const frontBumper = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.34, profile.width - 0.28), darkMaterial);
+  frontBumper.position.set(profile.length / 2 + 0.08, 0.86, 0);
+  root.add(frontBumper);
 
-  const bumperFront = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.34, 1.72), dark);
-  bumperFront.position.set(2.38, 0.84, 0);
-  root.add(bumperFront);
+  const rearBumper = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.34, profile.width - 0.28), darkMaterial);
+  rearBumper.position.set(-profile.length / 2 - 0.06, 0.86, 0);
+  root.add(rearBumper);
 
-  const bumperRear = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.34, 1.72), dark);
-  bumperRear.position.set(-2.34, 0.84, 0);
-  root.add(bumperRear);
-
-  const grill = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.86), trim);
-  grill.position.set(2.52, 1.06, 0);
+  const grillWidth = vehicle.fuel === "Electric" ? 0.54 : 0.94;
+  const grill = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.46, grillWidth), trimMaterial);
+  grill.position.set(profile.length / 2 + 0.18, 1.05, 0);
   root.add(grill);
 
+  const cabin = new THREE.Group();
+  const frontSeatLeft = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.62, 0.42), seatMaterial);
+  frontSeatLeft.position.set(0.7, 1.16, 0.4);
+  cabin.add(frontSeatLeft);
+  const frontSeatRight = frontSeatLeft.clone();
+  frontSeatRight.position.z = -0.4;
+  cabin.add(frontSeatRight);
+
+  const rearSeat = new THREE.Mesh(
+    new THREE.BoxGeometry(vehicle.bodyStyle === "Minivan" ? 1.3 : 0.95, 0.5, vehicle.bodyStyle === "Coupe" ? 0.76 : 1.2),
+    seatMaterial
+  );
+  rearSeat.position.set(vehicle.bodyStyle === "Minivan" ? -0.45 : -0.3, 1.1, 0);
+  cabin.add(rearSeat);
+
+  if (vehicle.bodyStyle === "Minivan") {
+    const thirdRow = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.46, 1.16), seatMaterial);
+    thirdRow.position.set(-1.5, 1.04, 0);
+    cabin.add(thirdRow);
+  }
+
+  const dashboard = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.26, 1.3), dashMaterial);
+  dashboard.position.set(1.35, 1.45, 0);
+  cabin.add(dashboard);
+
+  const console = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.18, 0.28), dashMaterial);
+  console.position.set(0.32, 1.02, 0);
+  cabin.add(console);
+  root.add(cabin);
+
+  if (vehicle.bodyStyle === "Truck") {
+    const bed = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.46, 1.62), darkMaterial);
+    bed.position.set(-1.65, 1.12, 0);
+    root.add(bed);
+  }
+
+  if (vehicle.bodyStyle === "Coupe") {
+    const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 1.1), trimMaterial);
+    spoiler.position.set(-1.95, 1.52, 0);
+    root.add(spoiler);
+  }
+
+  if (vehicle.bodyStyle === "SUV" || vehicle.bodyStyle === "Crossover") {
+    const roofPanel = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 1.08), darkMaterial);
+    roofPanel.position.set(0.06, profile.roofHeight + 0.33, 0);
+    root.add(roofPanel);
+  }
+
+  const wheelZ = profile.width / 2 - 0.93;
   [
-    [1.6, 0.52, 1.02],
-    [-1.6, 0.52, 1.02],
-    [1.6, 0.52, -1.02],
-    [-1.6, 0.52, -1.02]
+    [profile.wheelBase, 0.54, wheelZ],
+    [-profile.wheelBase, 0.54, wheelZ],
+    [profile.wheelBase, 0.54, -wheelZ],
+    [-profile.wheelBase, 0.54, -wheelZ]
   ].forEach(([x, y, z]) => {
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.38, 28), dark);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.38, 30), darkMaterial);
     tire.rotation.z = Math.PI / 2;
     tire.position.set(x, y, z);
     root.add(tire);
 
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.4, 20), trim);
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.4, 22), trimMaterial);
     wheel.rotation.z = Math.PI / 2;
     wheel.position.set(x, y, z);
     root.add(wheel);
   });
 
-  const roofPanel = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.05, 1.05), dark);
-  roofPanel.position.set(0.05, 2.03, 0);
-  root.add(roofPanel);
-
-  return root;
+  return { root, paintMaterial, glassMaterial, trimMaterial };
 }
 
 function initializeFilters() {
@@ -466,8 +632,12 @@ function initializeFilters() {
   populateSelect(els.bodyFilter, [...new Set(vehicles.map((vehicle) => vehicle.bodyStyle))]);
   populateSelect(els.fuelFilter, [...new Set(vehicles.map((vehicle) => vehicle.fuel))]);
   populateSelect(els.drivetrainFilter, [...new Set(vehicles.map((vehicle) => vehicle.drivetrain))]);
-  els.featureFilters.innerHTML = featureOptions.map((feature) => `<button class="feature-chip" type="button" data-feature="${feature}">${feature}</button>`).join("");
-  els.driveVehicleSelect.innerHTML = vehicles.map((vehicle) => `<option value="${vehicle.id}">${vehicleName(vehicle)}</option>`).join("");
+  els.featureFilters.innerHTML = featureOptions
+    .map((feature) => `<button class="feature-chip" type="button" data-feature="${feature}">${feature}</button>`)
+    .join("");
+  els.driveVehicleSelect.innerHTML = vehicles
+    .map((vehicle) => `<option value="${vehicle.id}">${vehicleName(vehicle)}</option>`)
+    .join("");
 }
 
 function resetFilters() {
@@ -505,33 +675,40 @@ function bindEvents() {
     state.condition = event.target.value;
     renderInventory();
   });
+
   els.bodyFilter.addEventListener("change", (event) => {
     state.bodyStyle = event.target.value;
     renderInventory();
   });
+
   els.fuelFilter.addEventListener("change", (event) => {
     state.fuel = event.target.value;
     renderInventory();
   });
+
   els.drivetrainFilter.addEventListener("change", (event) => {
     state.drivetrain = event.target.value;
     renderInventory();
   });
+
   els.priceFilter.addEventListener("input", (event) => {
     state.maxPrice = Number(event.target.value);
     els.priceOutput.value = currency(state.maxPrice);
     renderInventory();
   });
+
   els.paymentFilter.addEventListener("input", (event) => {
     state.maxPayment = Number(event.target.value);
     els.paymentOutput.value = `${currency(state.maxPayment)}/mo`;
     renderInventory();
   });
+
   els.featureFilters.addEventListener("click", (event) => {
     const chip = event.target.closest("[data-feature]");
     if (!chip) {
       return;
     }
+
     const { feature } = chip.dataset;
     if (state.activeFeatures.has(feature)) {
       state.activeFeatures.delete(feature);
@@ -542,29 +719,36 @@ function bindEvents() {
     }
     renderInventory();
   });
+
   els.resetFilters.addEventListener("click", resetFilters);
   els.sortButton.addEventListener("click", rotateSort);
   els.heroTourButton.addEventListener("click", () => openVehicleModal("NSM-2401"));
   els.closeModalButton.addEventListener("click", () => els.vehicleModal.close());
   els.vehicleModal.addEventListener("click", (event) => {
-    const rect = els.vehicleModal.getBoundingClientRect();
-    const inside = rect.top <= event.clientY && event.clientY <= rect.bottom && rect.left <= event.clientX && event.clientX <= rect.right;
-    if (!inside) {
+    if (event.target === els.vehicleModal) {
       els.vehicleModal.close();
     }
   });
+  els.vehicleModal.addEventListener("close", () => {
+    disposeActiveViewer?.();
+    disposeActiveViewer = null;
+  });
+
   els.inventoryGrid.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) {
       return;
     }
+
     if (button.dataset.action === "details") {
       openVehicleModal(button.dataset.id);
     }
+
     if (button.dataset.action === "favorite") {
       toggleFavorite(button.dataset.id);
     }
   });
+
   els.financeForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(els.financeForm);
@@ -576,12 +760,14 @@ function bindEvents() {
     );
     els.financeOutput.textContent = `Estimated payment: ${currency(monthly)}/month before taxes and fees.`;
   });
+
   els.tradeForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(els.tradeForm);
     const estimate = estimateTradeIn(Number(data.get("miles")), data.get("condition"));
     els.tradeOutput.textContent = `${data.get("vehicle")} estimated trade-in value: ${currency(estimate)}.`;
   });
+
   els.driveForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(els.driveForm);

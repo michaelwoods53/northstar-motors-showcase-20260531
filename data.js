@@ -25,8 +25,15 @@ export const vehicles = [
     packages: ["Tech Suite", "Cold Weather", "Premium Audio"],
     features: ["360 Camera", "Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Third Row", "Wireless Charging"],
     highlights: ["312-mile range", "12-speaker Meridian audio", "Hands-free liftgate"],
-    hotspots: ["Open the panoramic roof", "Inspect second-row captain chairs", "View charging port detail"],
-    availability: "Available now"
+    photo: "./assets/vehicles/atlas-ev-suv.png",
+    availability: "Available now",
+    tourPaintOptions: ["#4357ad", "#114b5f", "#d9ddd5"],
+    tourHotspots: [
+      { view: "front", label: "Front fascia", detail: "Inspect the EV front-end treatment, lighting signature, and camera placement." },
+      { view: "cabin", label: "Captain chairs", detail: "Cabin mode fades the body shell so shoppers can inspect the premium second-row layout." },
+      { view: "roof", label: "Panoramic roof", detail: "Top-down mode highlights the glass roof and roofline proportions." },
+      { view: "cargo", label: "Cargo access", detail: "Rear focus shows liftgate clearance and loading height." }
+    ]
   },
   {
     id: "NSM-2314",
@@ -53,8 +60,15 @@ export const vehicles = [
     packages: ["Ultimate Trailer", "Safety Sense", "Premium Leather"],
     features: ["Tow Hitch", "Apple CarPlay", "Ventilated Seats", "Blind Spot Monitor", "Remote Start", "Heads-Up Display"],
     highlights: ["11,900 lb towing", "Multi-flex tailgate", "Surround vision"],
-    hotspots: ["Review bed storage layout", "Inspect towing camera view", "Highlight rear seat utility"],
-    availability: "Available now"
+    photo: "./assets/vehicles/sierra-truck.png",
+    availability: "Available now",
+    tourPaintOptions: ["#7d4e57", "#2f3235", "#d8d2ca"],
+    tourHotspots: [
+      { view: "front", label: "Tow view", detail: "Front tour view emphasizes grille height, tow camera position, and approach angle." },
+      { view: "wheel", label: "Wheel package", detail: "Wheel close-up focuses on the truck stance and tire sidewall." },
+      { view: "cargo", label: "Bed utility", detail: "Rear cargo view showcases bed length and tailgate working space." },
+      { view: "cabin", label: "Crew cab", detail: "Cabin mode reveals the crew-cab seating footprint and dash layout." }
+    ]
   },
   {
     id: "NSM-2219",
@@ -81,8 +95,15 @@ export const vehicles = [
     packages: ["Driver Assist+", "Luxury Cabin"],
     features: ["Adaptive Cruise", "Sunroof", "Heated Seats", "Apple CarPlay", "Lane Keep Assist", "Wireless Charging"],
     highlights: ["48 mpg combined", "Leather-trimmed interior", "Bose audio"],
-    hotspots: ["View digital cockpit", "Inspect rear legroom", "Show trunk opening"],
-    availability: "Available now"
+    photo: "./assets/vehicles/aster-sedan.png",
+    availability: "Available now",
+    tourPaintOptions: ["#2e6f57", "#64756c", "#d9d4ca"],
+    tourHotspots: [
+      { view: "front", label: "Lighting", detail: "Front view centers the headlamp signature and sedan nose proportions." },
+      { view: "cabin", label: "Digital cockpit", detail: "Cabin mode pulls focus to the dash and front-seat layout." },
+      { view: "rear", label: "Rear seat room", detail: "Rear-quarter view helps shoppers judge second-row legroom visually." },
+      { view: "roof", label: "Roofline", detail: "Top angle highlights the sedan roof arc and glass area." }
+    ]
   },
   {
     id: "NSM-2407",
@@ -109,8 +130,15 @@ export const vehicles = [
     packages: ["Track", "Driver Vision", "Carbon Trim"],
     features: ["Apple CarPlay", "Launch Control", "Adaptive Cruise", "Blind Spot Monitor", "Heads-Up Display", "Premium Audio"],
     highlights: ["0-60 in 4.1 sec", "Performance exhaust", "Adaptive dampers"],
-    hotspots: ["Check wheel and brake package", "Inspect bucket seats", "Switch paint reflections"],
-    availability: "Available now"
+    photo: "./assets/vehicles/corsa-coupe.png",
+    availability: "Available now",
+    tourPaintOptions: ["#b94e29", "#8e2421", "#c7c8cb"],
+    tourHotspots: [
+      { view: "front", label: "Performance nose", detail: "Low front angle emphasizes the coupe stance and front aero character." },
+      { view: "wheel", label: "Brake package", detail: "Wheel mode frames the performance wheel-and-brake package." },
+      { view: "cabin", label: "Driver cockpit", detail: "Cabin mode isolates the 2+2 cockpit and console focus." },
+      { view: "rear", label: "Spoiler line", detail: "Rear-quarter view reveals the taper and tail treatment." }
+    ]
   },
   {
     id: "NSM-2208",
@@ -137,8 +165,15 @@ export const vehicles = [
     packages: ["Adventure", "Trail Vision", "Premium Sound"],
     features: ["360 Camera", "Tow Hitch", "Heated Seats", "Blind Spot Monitor", "Remote Start", "Navigation"],
     highlights: ["Terrain response modes", "Roof platform included", "All-weather mats"],
-    hotspots: ["Inspect roof rack setup", "Open cargo area", "Highlight trail camera"],
-    availability: "In transit"
+    photo: "./assets/vehicles/summit-suv.png",
+    availability: "In transit",
+    tourPaintOptions: ["#6d7d46", "#44503d", "#d2d0c3"],
+    tourHotspots: [
+      { view: "front", label: "Trail front", detail: "Front angle shows clearance, bumper depth, and rugged stance." },
+      { view: "roof", label: "Roof platform", detail: "Top view calls attention to roof storage and rack geometry." },
+      { view: "cargo", label: "Liftgate area", detail: "Rear focus highlights the cargo opening and load floor." },
+      { view: "wheel", label: "All-terrain tires", detail: "Wheel preset zooms into sidewall and wheel fitment." }
+    ]
   },
   {
     id: "NSM-2318",
@@ -165,8 +200,15 @@ export const vehicles = [
     packages: ["Tech", "Comfort", "Driver Assist"],
     features: ["Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "360 Camera", "Wireless Charging", "Hands-Free Liftgate"],
     highlights: ["274-mile range", "Heat pump", "Level 2 charging cable included"],
-    hotspots: ["View charging drawer", "Inspect slim dash layout", "Highlight rear cargo floor"],
-    availability: "Available now"
+    photo: "./assets/vehicles/cityline-crossover.png",
+    availability: "Available now",
+    tourPaintOptions: ["#5e7ce2", "#2746ac", "#d5dbe9"],
+    tourHotspots: [
+      { view: "front", label: "Charge-ready front", detail: "Front view helps present the EV shape and sensor-friendly face." },
+      { view: "cabin", label: "Minimal dash", detail: "Cabin mode reveals the slim EV dashboard and front-row packaging." },
+      { view: "rear", label: "Cargo lip", detail: "Rear angle makes the hatch opening and cargo sill easier to judge." },
+      { view: "wheel", label: "Efficiency wheels", detail: "Wheel close-up spotlights the aero-inspired wheel design." }
+    ]
   },
   {
     id: "NSM-2411",
@@ -193,8 +235,15 @@ export const vehicles = [
     packages: ["Rear Media", "Safety Elite", "Lounge Seating"],
     features: ["Third Row", "Heated Seats", "Ventilated Seats", "Apple CarPlay", "360 Camera", "Rear Entertainment"],
     highlights: ["Stow-flat third row", "Dual power sliders", "35 mpg combined"],
-    hotspots: ["Open sliding door", "Inspect third-row access", "Show cargo behind third row"],
-    availability: "Available now"
+    photo: "./assets/vehicles/voyager-minivan.png",
+    availability: "Available now",
+    tourPaintOptions: ["#556270", "#2e3a48", "#d8d8d4"],
+    tourHotspots: [
+      { view: "cabin", label: "Three-row seating", detail: "Cabin mode is designed to show the long-wheelbase family layout." },
+      { view: "cargo", label: "Cargo behind third row", detail: "Rear cargo view shows usable space even with all rows up." },
+      { view: "roof", label: "Family roofline", detail: "Top view highlights the longer roof and sliding-door proportions." },
+      { view: "front", label: "Driver access", detail: "Front quarter view balances visibility of hood depth and cabin size." }
+    ]
   },
   {
     id: "NSM-2105",
@@ -221,8 +270,85 @@ export const vehicles = [
     packages: ["Cold Weather", "Luxury Interior", "Advanced Safety"],
     features: ["Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Panoramic Roof", "Navigation", "Tow Hitch"],
     highlights: ["Long-range diesel", "Massage front seats", "Air suspension"],
-    hotspots: ["Inspect panoramic roof", "Show cargo bay", "Highlight seat controls"],
-    availability: "Available now"
+    photo: "./assets/vehicles/aurora-suv.png",
+    availability: "Available now",
+    tourPaintOptions: ["#815355", "#53383f", "#d4ceca"],
+    tourHotspots: [
+      { view: "front", label: "Luxury front", detail: "Front-quarter preset gives the most premium read on the exterior presence." },
+      { view: "cabin", label: "Comfort cabin", detail: "Cabin mode focuses on the seating position and dash depth." },
+      { view: "roof", label: "Glass roof", detail: "Top view frames the panoramic roof opening over both rows." },
+      { view: "rear", label: "Cargo zone", detail: "Rear view helps visualize loading depth for luggage." }
+    ]
+  },
+  {
+    id: "NSM-2409",
+    year: 2024,
+    make: "Celestia",
+    model: "Solstice",
+    trim: "Grand Touring",
+    condition: "New",
+    bodyStyle: "Sedan",
+    fuel: "Electric",
+    drivetrain: "AWD",
+    mileage: 11,
+    price: 68450,
+    monthlyEstimate: 972,
+    exteriorColor: "#f0f0eb",
+    interiorColor: "Slate",
+    range: "351 mi",
+    transmission: "Single-speed",
+    vin: "7FDSS8AL4RA240909",
+    stock: "2409",
+    rating: 4.9,
+    dealerNote: "Luxury EV sedan with a long-range battery, dual-motor AWD, and a quiet executive cabin.",
+    badges: ["3D Tour", "Executive EV"],
+    packages: ["Lounge Interior", "Pilot Assist", "Premium Glass"],
+    features: ["360 Camera", "Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Wireless Charging", "Heads-Up Display"],
+    highlights: ["351-mile range", "Executive rear legroom", "Dual-motor AWD"],
+    photo: "./assets/vehicles/solstice-sedan.png",
+    availability: "Available now",
+    tourPaintOptions: ["#f0f0eb", "#cfd5da", "#1a1f24"],
+    tourHotspots: [
+      { view: "front", label: "Lighting signature", detail: "Front view spotlights the luxury EV lighting bar and nose treatment." },
+      { view: "cabin", label: "Executive cabin", detail: "Cabin mode emphasizes the long, low sedan interior feel." },
+      { view: "rear", label: "Fastback rear", detail: "Rear-quarter focus helps sell the sedan silhouette and trunk access." },
+      { view: "wheel", label: "Wheel design", detail: "Wheel preset shows the large-format luxury wheel package." }
+    ]
+  },
+  {
+    id: "NSM-2212",
+    year: 2022,
+    make: "Nova",
+    model: "Pulse",
+    trim: "Limited",
+    condition: "Used",
+    bodyStyle: "Crossover",
+    fuel: "Gasoline",
+    drivetrain: "AWD",
+    mileage: 22530,
+    price: 32640,
+    monthlyEstimate: 479,
+    exteriorColor: "#1d2125",
+    interiorColor: "Chestnut",
+    range: "N/A",
+    transmission: "8-Speed Auto",
+    vin: "2N4BL4CW8NC221212",
+    stock: "2212",
+    rating: 4.7,
+    dealerNote: "Compact AWD crossover with premium trim, smart safety tech, and an easy city footprint.",
+    badges: ["Certified", "Urban Pick"],
+    packages: ["Driver Safety", "Comfort Plus", "Blackline"],
+    features: ["Apple CarPlay", "Heated Seats", "Blind Spot Monitor", "Remote Start", "Wireless Charging", "Navigation"],
+    highlights: ["Compact city size", "AWD confidence", "Premium trim"],
+    photo: "./assets/vehicles/pulse-crossover.png",
+    availability: "Available now",
+    tourPaintOptions: ["#1d2125", "#4e5256", "#dbd7d2"],
+    tourHotspots: [
+      { view: "front", label: "Urban front", detail: "Front angle communicates the compact crossover proportions clearly on mobile." },
+      { view: "cabin", label: "Daily-driver cabin", detail: "Cabin mode shows the compact but premium seating footprint." },
+      { view: "rear", label: "Hatch access", detail: "Rear view focuses on the liftgate opening and cargo lip." },
+      { view: "wheel", label: "Blackline trim", detail: "Wheel preset highlights the dark exterior trim theme." }
+    ]
   }
 ];
 
